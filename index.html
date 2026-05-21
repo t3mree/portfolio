@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hemam Mohammad | Penetration Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020c06;
+    --bg2: #040f08;
+    --green: #00ff41;
+    --green-dim: #00c132;
+    --green-dark: #003d0f;
+    --green-glow: rgba(0,255,65,0.15);
+    --red: #ff2d55;
+    --text: #c8ffd4;
+    --text-dim: #5a8c64;
+    --border: rgba(0,255,65,0.2);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Orbitron', sans-serif;
+    --body: 'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  @media (min-width: 769px) {
+    body { cursor: none; }
+    .cursor {
+      width: 12px; height: 12px;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+      transition: transform 0.1s ease;
+    }
+    .cursor-trail {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.5;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cursor, .cursor-trail { display: none; }
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,65,0.015) 2px,
+      rgba(0,255,65,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  #matrix-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: rgba(2,12,6,0.9);
+    backdrop-filter: blur(10px);
+  }
+
+  .nav-logo {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.2em;
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--text-dim); }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+    position: relative;
+  }
+
+  .nav-links a::before {
+    content: '> ';
+    color: var(--green);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--green); }
+  .nav-links a:hover::before { opacity: 1; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--green); }
+    50% { opacity: 0.4; box-shadow: none; }
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 3rem;
+    z-index: 1;
+  }
+
+  .hero-content { max-width: 800px; width: 100%; }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.3em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.2s forwards;
+  }
+
+  .hero-name {
+    font-family: var(--display);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.4s forwards;
+  }
+
+  .hero-name .first { color: var(--text); }
+  .hero-name .last {
+    color: var(--green);
+    text-shadow: 0 0 30px rgba(0,255,65,0.5);
+    display: block;
+  }
+
+  .hero-title {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.6s forwards;
+  }
+
+  .hero-title .accent { color: var(--green); }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-bottom: 3rem;
+    line-height: 1.9;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.8s forwards;
+    border-left: 2px solid var(--green-dark);
+    padding-left: 1.2rem;
+  }
+
+  .hero-desc strong {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 1s forwards;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    padding: 0.8rem 1.8rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: var(--bg);
+    font-weight: 700;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+
+  .btn-primary:hover {
+    background: #fff;
+    box-shadow: 0 0 30px rgba(0,255,65,0.6);
+    transform: translateY(-2px);
+  }
+
+  .btn-outline {
+    border: 1px solid var(--border);
+    color: var(--green);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--green);
+    background: var(--green-glow);
+    transform: translateY(-2px);
+  }
+
+  /* Hero side — refined orbital display */
+  .hero-grid {
+    position: absolute;
+    right: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.2s forwards;
+  }
+
+  .orbital-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orb-ring {
+    position: absolute;
+    border-radius: 50%;
+    animation: spin linear infinite;
+  }
+
+  .orb-ring:nth-child(1) {
+    width: 290px; height: 290px;
+    border: 1px solid rgba(0,255,65,0.12);
+    animation-duration: 28s;
+  }
+
+  .orb-ring:nth-child(2) {
+    width: 210px; height: 210px;
+    border: 1px solid rgba(0,255,65,0.2);
+    animation-duration: 18s;
+    animation-direction: reverse;
+  }
+
+  .orb-ring:nth-child(3) {
+    width: 130px; height: 130px;
+    border: 1px solid rgba(0,255,65,0.35);
+    animation-duration: 10s;
+  }
+
+  .orb-ring::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 50%;
+    transform: translateX(-50%);
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,65,0.4);
+  }
+
+  .orb-ring:nth-child(2)::before {
+    background: rgba(0,255,65,0.6);
+    box-shadow: 0 0 6px rgba(0,255,65,0.6);
+  }
+
+  .orb-ring:nth-child(3)::before {
+    width: 5px; height: 5px;
+    background: rgba(0,255,65,0.4);
+    box-shadow: none;
+  }
+
+  .orb-core {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+
+  .orb-shield {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 0.6rem;
+    position: relative;
+  }
+
+  .orb-shield svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(0,255,65,0.5));
+  }
+
+  .orb-label {
+    font-family: var(--display);
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--green);
+    line-height: 2;
+    opacity: 0.8;
+  }
+
+  .orb-label .main {
+    font-size: 0.65rem;
+    opacity: 1;
+    color: var(--text);
+  }
+
+  /* Corner tick marks */
+  .orb-tick {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-color: rgba(0,255,65,0.4);
+    border-style: solid;
+  }
+
+  .orb-tick.tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+  .orb-tick.tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+  .orb-tick.bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+  .orb-tick.br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--green);
+    opacity: 0.6;
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.1em;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 200px;
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skill-card {
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    background: rgba(0,255,65,0.02);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--green);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+    transform-origin: bottom;
+  }
+
+  .skill-card:hover {
+    border-color: var(--green);
+    background: var(--green-glow);
+    transform: translateY(-4px);
+  }
+
+  .skill-card:hover::before { transform: scaleY(1); }
+
+  .skill-icon { font-size: 1.5rem; margin-bottom: 0.8rem; }
+
+  .skill-name {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .skill-desc {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* CEH badge */
+  .cert-banner {
+    margin-top: 2.5rem;
+    border: 1px solid rgba(0,255,65,0.3);
+    background: rgba(0,255,65,0.03);
+    padding: 1.2rem 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    max-width: 640px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cert-banner::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+  }
+
+  .cert-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .cert-title {
+    font-family: var(--display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+
+  .cert-sub {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* TOOLS */
+  .tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .tool-tag {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--green-dark);
+    color: var(--green-dim);
+    background: rgba(0,255,65,0.03);
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+
+  .tool-tag:hover {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--green-glow);
+  }
+
+  /* EXPERIENCE */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .exp-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: rgba(0,255,65,0.02);
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .exp-card:hover {
+    border-color: var(--green);
+    background: var(--green-glow);
+  }
+
+  .exp-platform {
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+
+  .exp-sub {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .exp-desc {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .exp-desc ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.8rem;
+  }
+
+  .exp-desc ul li {
+    padding: 0.25rem 0;
+    padding-left: 1rem;
+    position: relative;
+  }
+
+  .exp-desc ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-size: 0.75rem;
+  }
+
+  .exp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    text-decoration: none;
+    margin-top: 1.2rem;
+    transition: all 0.2s;
+    letter-spacing: 0.08em;
+  }
+
+  .exp-link:hover { gap: 0.8rem; }
+
+  /* EDUCATION */
+  .edu-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: rgba(0,255,65,0.02);
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    max-width: 700px;
+    transition: all 0.3s;
+  }
+
+  .edu-card:hover {
+    border-color: var(--green);
+    background: var(--green-glow);
+  }
+
+  .edu-icon { font-size: 2.5rem; line-height: 1; flex-shrink: 0; }
+
+  .edu-degree {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+
+  .edu-school {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+  }
+
+  .edu-desc {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* CONTACT */
+  .contact-grid {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-card {
+    border: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    background: rgba(0,255,65,0.02);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+    min-width: 220px;
+  }
+
+  .contact-card:hover {
+    border-color: var(--green);
+    background: var(--green-glow);
+    transform: translateY(-3px);
+  }
+
+  .contact-icon { font-size: 1.5rem; }
+
+  .contact-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+
+  .contact-value {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.05em;
+  }
+
+  /* TERMINAL BLOCK */
+  .terminal {
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.5);
+    max-width: 600px;
+    margin-top: 2rem;
+  }
+
+  .terminal-bar {
+    padding: 0.6rem 1rem;
+    background: rgba(0,255,65,0.05);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-red { background: #ff5f57; }
+  .t-yellow { background: #febc2e; }
+  .t-green { background: #28c840; }
+
+  .terminal-body {
+    padding: 1.2rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 2;
+  }
+
+  .t-prompt { color: var(--green); }
+  .t-cmd { color: var(--text); }
+  .t-output { color: var(--text-dim); }
+  .t-cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--green);
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  .footer-text span { color: var(--green); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero { padding: 6rem 1.5rem 3rem; }
+    .hero-grid { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .exp-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursor-trail"></div>
+
+<nav>
+  <a href="#" class="nav-logo">H<span>.</span>MOHAMMAD</a>
+  <ul class="nav-links">
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);">
+    AVAILABLE FOR HIRE
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">// PENETRATION TESTER & CYBERSECURITY SPECIALIST</div>
+    <h1 class="hero-name">
+      <span class="first">HEMAM</span>
+      <span class="last">MOHAMMAD</span>
+    </h1>
+    <div class="hero-title">
+      <span class="accent">$</span> <kbd>whoami</kbd> → <span class="accent">Ethical Hacker</span> | Amman, Jordan
+    </div>
+    <p class="hero-desc">
+      A dedicated cybersecurity professional specializing in <strong>penetration testing</strong> and <strong>offensive security operations</strong>. My methodology combines systematic threat analysis with hands-on exploitation techniques — delivering actionable security assessments that go far beyond automated scanning. Focused on identifying real-world attack vectors across web applications, networks, and infrastructure before adversaries do.
+    </p>
+    <div class="hero-actions">
+      <a href="mailto:T3mrey@gmail.com" class="btn btn-primary">
+        ✉ EMAIL ME
+      </a>
+      <a href="mailto:T3mrey@gmail.com" class="btn btn-outline">
+        ◎ T3MREY@GMAIL.COM
+      </a>
+    </div>
+
+    <div class="terminal" style="margin-top:2.5rem;">
+      <div class="terminal-bar">
+        <div class="t-dot t-red"></div>
+        <div class="t-dot t-yellow"></div>
+        <div class="t-dot t-green"></div>
+        <span style="margin-left:0.5rem;">t3mree@kali:~</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">t3mree@kali</span><span class="t-cmd">:~$ <code>nmap -sV target.com</code></span></div>
+        <div class="t-output">Starting Nmap scan...</div>
+        <div class="t-output">PORT    STATE  SERVICE  VERSION</div>
+        <div class="t-output">80/tcp  open   http     Apache 2.4</div>
+        <div class="t-output">443/tcp open   ssl/http nginx</div>
+        <div><span class="t-prompt">t3mree@kali</span><span class="t-cmd">:~$ </span><span class="t-cursor"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="orbital-wrap">
+      <div class="orb-tick tl"></div>
+      <div class="orb-tick tr"></div>
+      <div class="orb-tick bl"></div>
+      <div class="orb-tick br"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-core">
+        <div class="orb-shield">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32 4L8 14V32C8 46 18 58 32 62C46 58 56 46 56 32V14L32 4Z"
+              stroke="#00ff41" stroke-width="1.5" fill="rgba(0,255,65,0.05)"/>
+            <path d="M32 12L14 20V32C14 43 22 52 32 56C42 52 50 43 50 32V20L32 12Z"
+              stroke="rgba(0,255,65,0.3)" stroke-width="1" fill="none"/>
+            <path d="M22 32L28 38L42 26" stroke="#00ff41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="orb-label">
+          <div>OFFENSIVE</div>
+          <div class="main">SECURITY</div>
+          <div>SPECIALIST</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="section-header reveal">
+    <span class="section-num">01</span>
+    <h2 class="section-title">TECHNICAL SKILLSET</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-card reveal">
+      <div class="skill-icon">🔍</div>
+      <div class="skill-name">PENETRATION TESTING</div>
+      <div class="skill-desc">Network & web application penetration testing. Manual exploitation of complex vulnerabilities across Linux and Windows environments.</div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="skill-icon">🌐</div>
+      <div class="skill-name">WEB APP SECURITY</div>
+      <div class="skill-desc">Deep expertise in OWASP Top 10 vulnerabilities including XSS, SQL Injection, IDOR, SSRF, and authentication bypass techniques.</div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="skill-icon">📡</div>
+      <div class="skill-name">NETWORK ANALYSIS</div>
+      <div class="skill-desc">Traffic analysis, network topology mapping, and identifying attack vectors across complex network architectures.</div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="skill-icon">⚙️</div>
+      <div class="skill-name">PRIVILEGE ESCALATION</div>
+      <div class="skill-desc">Advanced privilege escalation techniques on both Linux and Windows systems. Systematic enumeration and post-exploitation.</div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="skill-icon">🔬</div>
+      <div class="skill-name">VULNERABILITY ASSESSMENT</div>
+      <div class="skill-desc">Comprehensive vulnerability assessments with detailed reporting. Threat modeling and risk prioritization for organizations.</div>
+    </div>
+    <div class="skill-card reveal">
+      <div class="skill-icon">🖥️</div>
+      <div class="skill-name">VIRTUALIZATION & LAB SETUP</div>
+      <div class="skill-desc">Proficient in deploying full Linux distributions across multiple virtual machines and servers. Expert in configuring isolated lab environments for security testing and research.</div>
+    </div>
+  </div>
+
+  <div class="cert-banner reveal" style="margin-top:2.5rem;">
+    <div class="cert-icon">🏅</div>
+    <div>
+      <div class="cert-title">CERTIFIED ETHICAL HACKER (CEH) — IN PROGRESS</div>
+      <div class="cert-sub">
+        Completed the official EC-Council CEH training program. Currently pursuing the certification exam to formally validate offensive security competencies and ethical hacking methodology at an internationally recognized standard.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:3rem;" class="reveal">
+    <div style="font-family:var(--mono);font-size:0.75rem;color:var(--text-dim);letter-spacing:0.2em;margin-bottom:1rem;">// TOOLS & TECHNOLOGIES</div>
+    <div class="tools-list">
+      <span class="tool-tag">Nmap</span>
+      <span class="tool-tag">Burp Suite</span>
+      <span class="tool-tag">Metasploit</span>
+      <span class="tool-tag">Wireshark</span>
+      <span class="tool-tag">Kali Linux</span>
+      <span class="tool-tag">SQLMap</span>
+      <span class="tool-tag">Hydra</span>
+      <span class="tool-tag">Gobuster</span>
+      <span class="tool-tag">Nikto</span>
+      <span class="tool-tag">Netcat</span>
+    </div>
+  </div>
+</section>
+
+<section id="experience" style="background:rgba(0,255,65,0.01);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-header reveal">
+    <span class="section-num">02</span>
+    <h2 class="section-title">HANDS-ON EXPERIENCE</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="exp-grid">
+    <div class="exp-card reveal">
+      <div class="exp-platform">TRYHACKME</div>
+      <div class="exp-sub">// OFFENSIVE SECURITY & REAL-WORLD MACHINES</div>
+      <div class="exp-desc">
+        Actively compromising diverse, real-world virtual machines through systematic enumeration and manual exploitation of complex vulnerabilities across Linux and Windows environments.
+        <ul>
+          <li>Advanced privilege escalation on hardened systems</li>
+          <li>Post-exploitation and lateral movement techniques</li>
+          <li>Custom exploit development for identified CVEs</li>
+        </ul>
+      </div>
+      <a href="https://tryhackme.com/p/T3mree" target="_blank" class="exp-link">View Profile →</a>
+    </div>
+    <div class="exp-card reveal">
+      <div class="exp-platform">ADDITIONAL INFO</div>
+      <div class="exp-sub">// STRUCTURED LEARNING & PRACTICAL REPORTS</div>
+      <div class="exp-desc">
+        Completed multiple structured courses and learning paths in cybersecurity. Produced detailed penetration testing reports covering real attack scenarios.
+        <ul>
+          <li>Dedicated reports on Metasploit exploitation workflows</li>
+          <li>OWASP Top 10 — hands-on lab documentation</li>
+          <li>DVWA (Damn Vulnerable Web App) — full attack walkthroughs</li>
+          <li>Network topology mapping and threat visualization</li>
+        </ul>
+      </div>
+      <a href="https://tryhackme.com/p/T3mree" target="_blank" class="exp-link">View Profile →</a>
+    </div>
+  </div>
+</section>
+
+<section id="education">
+  <div class="section-header reveal">
+    <span class="section-num">03</span>
+    <h2 class="section-title">EDUCATION</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="edu-card reveal">
+    <div class="edu-icon">🎓</div>
+    <div>
+      <div class="edu-degree">Higher Diploma in Cybersecurity</div>
+      <div class="edu-school">MIDDLE EAST UNIVERSITY (MEU) — AMMAN, JORDAN</div>
+      <p class="edu-desc">Comprehensive foundation in network defense, information security policy, and cryptographic principles. Complemented institutional academic knowledge with extensive self-directed technical training, building a well-rounded offensive and defensive security profile recognized at both academic and professional levels.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact" style="background:rgba(0,255,65,0.01);border-top:1px solid var(--border);">
+  <div class="section-header reveal">
+    <span class="section-num">04</span>
+    <h2 class="section-title">INFORMAL CONTACT</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <p class="reveal" style="font-size:1rem;color:var(--text-dim);max-width:500px;margin-bottom:2.5rem;line-height:1.8;">
+    Want to discuss, follow up, or just keep in touch? Reach out through any of the channels below.
+  </p>
+
+  <div class="contact-grid">
+    <a href="https://www.instagram.com/t3mree" target="_blank" class="contact-card reveal">
+      <div class="contact-icon">📷</div>
+      <div>
+        <div class="contact-label">INSTAGRAM</div>
+        <div class="contact-value">@t3mree</div>
+      </div>
+    </a>
+    <a href="https://t.me/t3mree" target="_blank" class="contact-card reveal">
+      <div class="contact-icon">✈️</div>
+      <div>
+        <div class="contact-label">TELEGRAM</div>
+        <div class="contact-value">@t3mree</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-text">
+    <span>HEMAM MOHAMMAD</span> — CYBERSECURITY PROFESSIONAL | AMMAN, JORDAN
+  </div>
+</footer>
+
+<script>
+// Cursor — fixed positioning (no scroll offset needed)
+const cursor = document.getElementById('cursor');
+const trail = document.getElementById('cursor-trail');
+
+if (cursor && trail) {
+  let trailX = 0, trailY = 0;
+
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+
+    setTimeout(() => {
+      trail.style.left = e.clientX + 'px';
+      trail.style.top = e.clientY + 'px';
+    }, 60);
+  });
+
+  document.querySelectorAll('a, button, .tool-tag').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.style.transform = 'translate(-50%,-50%) scale(2.5)');
+    el.addEventListener('mouseleave', () => cursor.style.transform = 'translate(-50%,-50%) scale(1)');
+  });
+}
+
+// Matrix rain
+const canvas = document.getElementById('matrix-canvas');
+const ctx = canvas.getContext('2d');
+let cols, drops;
+const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()';
+
+function initCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  cols = Math.floor(canvas.width / 20);
+  drops = Array(cols).fill(1);
+}
+initCanvas();
+
+let lastTime = 0;
+function drawMatrix(ts) {
+  if (ts - lastTime > 40) {
+    ctx.fillStyle = 'rgba(2,12,6,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '14px Share Tech Mono';
+    drops.forEach((y, i) => {
+      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 20, y * 20);
+      if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+    lastTime = ts;
+  }
+  requestAnimationFrame(drawMatrix);
+}
+requestAnimationFrame(drawMatrix);
+
+let resizeTO;
+window.addEventListener('resize', () => { clearTimeout(resizeTO); resizeTO = setTimeout(initCanvas, 150); });
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) setTimeout(() => entry.target.classList.add('visible'), i * 50);
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
